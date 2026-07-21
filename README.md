@@ -1,8 +1,8 @@
-# 📄 DocuChat AI
+# 📄 Cognify Docs 
 
 An enterprise-grade **AI-Powered Document Chat System** built with **Retrieval-Augmented Generation (RAG)**. Upload HR policies, manuals, technical docs, contracts, or reports — then ask questions in plain English and get answers grounded **strictly** in your own documents. No hallucination. No fabricated answers.
 
-If the answer isn't in your documents, DocuChat AI says so:
+If the answer isn't in your documents, Cognify Docs AI says so:
 
 > "I couldn't find relevant information in the uploaded documents."
 
@@ -70,7 +70,7 @@ tests/               Pytest suite
 ### 2. Clone & configure
 
 ```bash
-cd docuchat-ai
+cd Cognify Docs-ai
 cp .env.example .env
 ```
 
@@ -81,7 +81,7 @@ Edit `.env` and fill in:
   python -c "import secrets; print(secrets.token_urlsafe(64))"
   ```
 - `DATABASE_URL` — from your Neon dashboard, e.g.
-  `postgresql+psycopg://user:pass@ep-xxxx.neon.tech/docuchat?sslmode=require`
+  `postgresql+psycopg://user:pass@ep-xxxx.neon.tech/Cognify Docs?sslmode=require`
 - `GOOGLE_API_KEY` — your Gemini API key
 
 ### 3. Install dependencies
