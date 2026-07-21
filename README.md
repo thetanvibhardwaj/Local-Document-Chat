@@ -18,7 +18,6 @@ Organizations store a large number of documents such as HR policies, technical m
 * **Chunking:** LangChain Recursive Character Text Splitter
 * **Vector Database:** Neon PostgreSQL with pgvector
 * **Database:** PostgreSQL (User Authentication & Chat History)
-* **Authentication:** JWT Authentication
 
 ## System Workflow
 
