@@ -1,4 +1,4 @@
-# Cognify Docs 📄🤖
+# Cognify Docs 📄
 
 **Cognify Docs** is an AI-powered local document question-answering system that uses Retrieval-Augmented Generation (RAG). It enables users to securely upload local documents (PDFs, DOCX, TXT), parse and split their content, generate dense vector embeddings, index them in a local vector database, and perform context-accurate QA using the Google Gemini LLM API.
 
