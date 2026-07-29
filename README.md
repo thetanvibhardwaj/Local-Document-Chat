@@ -45,3 +45,37 @@ source venv/bin/activate  # On Windows use: venv\Scripts\activate
 
 # Install dependencies
 pip install -r requirements.txt
+```
+
+3. Environment Variables
+Create a .env file in the root directory (based on .env.example):
+
+```ini
+GEMINI_API_KEY=your_gemini_api_key_here
+DATABASE_URL=sqlite:///./cognify.db
+EMBEDDING_MODEL_NAME=all-MiniLM-L6-v2
+```
+⚡ Running the Platform
+To start both the Backend (FastAPI) and Frontend (Streamlit) services concurrently, run:
+
+```bash
+run_project.bat
+```
+Alternatively, launch them in separate terminal tabs:
+
+Start Backend:
+
+```bash
+python backend/main.py
+```
+Start Frontend:
+
+```bash
+streamlit run frontend/app.py
+```
+Open your browser and navigate to http://localhost:8501 to use the application.
+
+📊 System Architecture
+
+<img width="1600" height="1429" alt="cognify framework" src="https://github.com/user-attachments/assets/7b6a0e6d-0247-4ec0-9c16-7e3c6ba7a323" />
+
