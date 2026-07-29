@@ -69,5 +69,12 @@ Open your browser and navigate to http://localhost:8501 to use the application.
 ```
 
 
+📊 System Architecture
+
+<img width="1600" height="1429" alt="cognify framework" src="https://github.com/user-attachments/assets/1c356222-894d-46e2-b0e6-270aa50d0a9d" />
+
+
+
+
 
 
