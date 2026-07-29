@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#0D1117}
+canvas{display:block;position:fixed;top:0;left:0;width:100%;height:100%;z-index:0}
+
+/* HUD overlay panels */
+.hud{position:fixed;z-index:2;pointer-events:none;font-family:'Inter',system-ui,sans-serif}
+.hud-tl{top:32px;left:36px}
+.hud-br{bottom:32px;right:36px}
+.hud-label{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(6,182,212,0.55);margin-bottom:4px}
+.hud-value{font-size:11px;color:rgba(255,255,255,0.35);line-height:1.8}
+.hud-dot{display:inline-block;width:5px;height:5px;border-radius:50%;background:#06B6D4;margin-right:6px;animation:blink 2s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.2}}
+
+/* Typing panel — bottom LEFT */
+.type-panel{
+  position:fixed;bottom:36px;left:36px;
+  z-index:2;pointer-events:none;
+  background:rgba(13,17,23,0.75);
+  border:1px solid rgba(6,182,212,0.22);
+  border-radius:12px;
+  padding:14px 20px;
+  backdrop-filter:blur(16px);
+  width:300px;
+  text-align:left;
+}
+.type-label{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(6,182,212,0.65);margin-bottom:7px;font-family:'Inter',sans-serif}
+.type-text{font-size:13px;color:rgba(255,255,255,0.8);font-family:'Inter',sans-serif;min-height:20px;line-height:1.5}
+.type-cursor{display:inline-block;width:1px;height:13px;background:#06B6D4;margin-left:2px;vertical-align:middle;animation:blink 1s step-end infinite}
+.answer-badge{
+  margin-top:10px;padding:10px 12px;
+  background:rgba(124,58,237,0.14);
+  border:1px solid rgba(124,58,237,0.28);
+  border-radius:8px;font-size:11.5px;
+  color:rgba(255,255,255,0.7);
+  font-family:'Inter',sans-serif;
+  line-height:1.6;
+  display:none;
+}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<!-- HUD top-left: System Status -->
+<div class="hud hud-tl">
+  <div class="hud-label">System Status</div>
+  <div class="hud-value"><span class="hud-dot"></span>FAISS Index — Online</div>
+  <div class="hud-value"><span class="hud-dot" style="animation-delay:.4s;background:#7C3AED"></span>Gemini AI — Ready</div>
+  <div class="hud-value"><span class="hud-dot" style="animation-delay:.8s"></span>RAG Pipeline — Active</div>
+</div>
+
+<!-- HUD bottom-right: Vector counter -->
+<div class="hud" style="bottom:36px;right:36px;text-align:right">
+  <div class="hud-label">Vectors Indexed</div>
+  <div class="hud-value" id="vec-counter" style="font-size:22px;color:rgba(6,182,212,0.6);font-weight:700;letter-spacing:1px;line-height:1.2">0</div>
+  <div class="hud-value" style="font-size:9px;color:rgba(255,255,255,0.2);letter-spacing:1px">documents · embeddings</div>
+</div>
+
+<!-- Typing query panel -->
+<div class="type-panel" id="type-panel" style="opacity:0;transition:opacity .6s">
+  <div class="type-label">AI Search Query</div>
+  <div class="type-text" id="type-text"><span class="type-cursor"></span></div>
+  <div class="answer-badge" id="ans-badge">
+    ✦ Annual leave: 20 days per year. Sick leave: 12 days.<br>Apply via HR portal 3 days in advance.
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+'use strict';
+
+/* ─── SCENE SETUP ─────────────────────────────────────────── */
+const W = window.innerWidth, H = window.innerHeight;
+const renderer = new THREE.WebGLRenderer({canvas:document.getElementById('c'),antialias:true,alpha:false});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+renderer.setSize(W,H);
+renderer.setClearColor(0x0D1117,1);
+
+const scene = new THREE.Scene();
+scene.fog = new THREE.FogExp2(0x0D1117,0.028);
+
+const camera = new THREE.PerspectiveCamera(60,W/H,0.1,200);
+camera.position.set(0,2,18);
+camera.lookAt(0,0,0);
+
+/* ─── LIGHTS ──────────────────────────────────────────────── */
+scene.add(new THREE.AmbientLight(0x0D1117,1));
+const blueLight = new THREE.PointLight(0x06B6D4,3,40);
+blueLight.position.set(-8,6,0);
+scene.add(blueLight);
+const purpleLight = new THREE.PointLight(0x7C3AED,2.5,35);
+purpleLight.position.set(8,-4,4);
+scene.add(purpleLight);
+const rimLight = new THREE.DirectionalLight(0xffffff,0.15);
+rimLight.position.set(0,10,-10);
+scene.add(rimLight);
+
+/* ─── MATERIALS ───────────────────────────────────────────── */
+const glassMat = (col=0xffffff,op=0.08)=>{
+  return new THREE.MeshPhongMaterial({
+    color:col,transparent:true,opacity:op,
+    shininess:120,specular:new THREE.Color(0x88ccff),
+    side:THREE.DoubleSide,depthWrite:false
+  });
+};
+const wireMat = (col=0x06B6D4,op=0.25)=>
+  new THREE.MeshBasicMaterial({color:col,wireframe:true,transparent:true,opacity:op});
+const lineMat = (col=0x06B6D4,op=0.35)=>
+  new THREE.LineBasicMaterial({color:col,transparent:true,opacity:op});
+
+/* ─── GRID PLANE ──────────────────────────────────────────── */
+const gridHelper = new THREE.GridHelper(60,40,0x1a2535,0x111820);
+gridHelper.position.y = -4;
+scene.add(gridHelper);
+
+/* ─── FLOATING GLASS CUBES (document chunks) ─────────────── */
+const cubes=[];
+const cubeGeo = new THREE.BoxGeometry(0.5,0.5,0.5);
+for(let i=0;i<24;i++){
+  const g = new THREE.Group();
+  const outer = new THREE.Mesh(cubeGeo, glassMat(i%2===0?0x06B6D4:0x7C3AED, 0.07));
+  const wire = new THREE.Mesh(cubeGeo, wireMat(i%2===0?0x06B6D4:0x7C3AED, 0.3));
+  g.add(outer,wire);
+  const r=()=>(Math.random()-0.5)*2;
+  g.position.set(r()*14, r()*7, r()*8-2);
+  g.userData={
+    speed:0.003+Math.random()*0.004,
+    axis:new THREE.Vector3(r(),r(),r()).normalize(),
+    floatAmp:0.08+Math.random()*0.12,
+    floatSpeed:0.4+Math.random()*0.6,
+    floatOffset:Math.random()*Math.PI*2,
+    baseY:g.position.y
+  };
+  scene.add(g);
+  cubes.push(g);
+}
+
+/* ─── NEURAL NETWORK NODES ────────────────────────────────── */
+const nodes=[];
+const nodeGeo = new THREE.SphereGeometry(0.12,8,8);
+const nodePositions=[];
+for(let i=0;i<30;i++){
+  const r=()=>(Math.random()-0.5)*2;
+  const pos = new THREE.Vector3(r()*12,r()*5,r()*6);
+  nodePositions.push(pos);
+  const col = Math.random()>0.5?0x06B6D4:0x7C3AED;
+  const mesh = new THREE.Mesh(nodeGeo, new THREE.MeshPhongMaterial({
+    color:col,emissive:new THREE.Color(col),emissiveIntensity:0.4,
+    transparent:true,opacity:0.7
+  }));
+  mesh.position.copy(pos);
+  mesh.userData={baseIntensity:0.4,phase:Math.random()*Math.PI*2,col};
+  scene.add(mesh);
+  nodes.push(mesh);
+}
+
+/* ─── NEURAL CONNECTIONS ──────────────────────────────────── */
+const connections=[];
+for(let i=0;i<nodePositions.length;i++){
+  for(let j=i+1;j<nodePositions.length;j++){
+    if(nodePositions[i].distanceTo(nodePositions[j])<5.5 && Math.random()>0.55){
+      const pts=[nodePositions[i],nodePositions[j]];
+      const geo = new THREE.BufferGeometry().setFromPoints(pts);
+      const col = Math.random()>0.5?0x06B6D4:0x7C3AED;
+      const line = new THREE.Line(geo,lineMat(col,0.18));
+      line.userData={phase:Math.random()*Math.PI*2};
+      scene.add(line);
+      connections.push(line);
+    }
+  }
+}
+
+/* ─── FLOATING DOCUMENT PANELS ────────────────────────────── */
+const panels=[];
+const panelGeo = new THREE.PlaneGeometry(1.6,2.2);
+const docColors=[0x06B6D4,0x7C3AED,0x3b82f6,0x8b5cf6];
+for(let i=0;i<7;i++){
+  const g = new THREE.Group();
+  const col = docColors[i%docColors.length];
+  const back = new THREE.Mesh(panelGeo, glassMat(col,0.06));
+  const border = new THREE.Mesh(panelGeo, new THREE.MeshBasicMaterial({
+    color:col,wireframe:false,transparent:true,opacity:0.12,
+    side:THREE.DoubleSide
+  }));
+  border.scale.set(1.02,1.02,1);
+  // doc lines
+  for(let l=0;l<5;l++){
+    const lGeo = new THREE.PlaneGeometry(1.1-Math.random()*0.4,0.04);
+    const lMesh = new THREE.Mesh(lGeo, new THREE.MeshBasicMaterial({
+      color:col,transparent:true,opacity:0.2+Math.random()*0.1
+    }));
+    lMesh.position.set(-0.15+Math.random()*0.1, 0.7-l*0.3, 0.01);
+    g.add(lMesh);
+  }
+  g.add(back,border);
+  const r=()=>(Math.random()-0.5)*2;
+  g.position.set(r()*13,r()*5,r()*7-2);
+  g.userData={
+    floatAmp:0.06+Math.random()*0.08,
+    floatSpeed:0.2+Math.random()*0.4,
+    floatOffset:Math.random()*Math.PI*2,
+    rotSpeed:0.0003+Math.random()*0.0005,
+    baseY:g.position.y
+  };
+  scene.add(g);
+  panels.push(g);
+}
+
+/* ─── FAISS DATABASE CUBE ─────────────────────────────────── */
+const dbGroup = new THREE.Group();
+const dbGeo = new THREE.BoxGeometry(1.8,1.8,1.8);
+const dbOuter = new THREE.Mesh(dbGeo, glassMat(0x7C3AED,0.12));
+const dbWire1 = new THREE.Mesh(dbGeo, wireMat(0x7C3AED,0.4));
+const dbWire2 = new THREE.Mesh(new THREE.BoxGeometry(2.0,2.0,2.0), wireMat(0x06B6D4,0.12));
+dbGroup.add(dbOuter,dbWire1,dbWire2);
+dbGroup.position.set(5,1.5,-2);
+scene.add(dbGroup);
+
+/* ─── PARTICLES ───────────────────────────────────────────── */
+const pCount=400;
+const pGeo = new THREE.BufferGeometry();
+const pPos=new Float32Array(pCount*3);
+const pVel=[];
+for(let i=0;i<pCount;i++){
+  pPos[i*3]=(Math.random()-0.5)*30;
+  pPos[i*3+1]=(Math.random()-0.5)*16;
+  pPos[i*3+2]=(Math.random()-0.5)*14;
+  pVel.push(new THREE.Vector3(
+    (Math.random()-0.5)*0.006,
+    (Math.random()-0.5)*0.006,
+    (Math.random()-0.5)*0.006
+  ));
+}
+pGeo.setAttribute('position',new THREE.BufferAttribute(pPos,3));
+const pMat = new THREE.PointsMaterial({
+  color:0x06B6D4,size:0.04,transparent:true,opacity:0.55,sizeAttenuation:true
+});
+scene.add(new THREE.Points(pGeo,pMat));
+
+/* ─── SEARCH BEAM ─────────────────────────────────────────── */
+const beamGeo = new THREE.CylinderGeometry(0.01,0.01,0.5,6);
+const beamMat = new THREE.MeshBasicMaterial({color:0x06B6D4,transparent:true,opacity:0.0});
+const beams=[];
+for(let i=0;i<6;i++){
+  const b = new THREE.Mesh(beamGeo,beamMat.clone());
+  b.userData={active:false,t:0};
+  scene.add(b);
+  beams.push(b);
+}
+
+/* ─── VECTOR COUNTER ANIMATION ───────────────────────────── */
+let vecTarget=0,vecCurrent=0;
+const vecEl = document.getElementById('vec-counter');
+setTimeout(()=>{ vecTarget=1247836; },800);
+
+/* ─── TYPING ANIMATION ────────────────────────────────────── */
+const QUERY="What is the leave policy?";
+let typePhase=0, typeIdx=0, typeTimer=0;
+const typePanel = document.getElementById('type-panel');
+const typeText  = document.getElementById('type-text');
+const ansBadge  = document.getElementById('ans-badge');
+
+function doTyping(dt){
+  typeTimer+=dt;
+  if(typePhase===0 && typeTimer>3){
+    typePanel.style.opacity='1';
+    typePhase=1; typeTimer=0; typeIdx=0;
+    typeText.innerHTML='<span class="type-cursor"></span>';
+  }
+  if(typePhase===1){
+    if(typeTimer>0.06){
+      typeTimer=0;
+      typeIdx++;
+      typeText.innerHTML=QUERY.slice(0,typeIdx)+'<span class="type-cursor"></span>';
+      if(typeIdx>=QUERY.length){ typePhase=2; typeTimer=0; }
+    }
+  }
+  if(typePhase===2 && typeTimer>1.2){
+    ansBadge.style.display='block';
+    typePhase=3; typeTimer=0;
+  }
+  if(typePhase===3 && typeTimer>4){
+    // fade out and restart
+    typePanel.style.opacity='0';
+    setTimeout(()=>{
+      ansBadge.style.display='none';
+      typeText.innerHTML='<span class="type-cursor"></span>';
+      typePhase=0; typeTimer=0;
+    },700);
+    typePhase=4;
+  }
+  if(typePhase===4 && typeTimer>5){ typePhase=0; typeTimer=0; }
+}
+
+/* ─── CAMERA DRIFT ────────────────────────────────────────── */
+let camT=0;
+function driftCamera(){
+  camT+=0.00025;
+  camera.position.x = Math.sin(camT)*1.5;
+  camera.position.y = 2 + Math.sin(camT*0.7)*0.6;
+  camera.position.z = 18 + Math.sin(camT*0.4)*0.8;
+  camera.lookAt(0,0,0);
+}
+
+/* ─── ACTIVATE SEARCH BEAMS ──────────────────────────────── */
+let beamTimer=0;
+function pulseBeams(dt){
+  beamTimer+=dt;
+  if(beamTimer>2.5){
+    beamTimer=0;
+    beams.forEach((b,i)=>{
+      setTimeout(()=>{
+        const src = nodes[Math.floor(Math.random()*nodes.length)];
+        b.position.copy(src.position);
+        b.userData.active=true;
+        b.userData.t=0;
+        b.material.opacity=0.6;
+      },i*120);
+    });
+  }
+  beams.forEach(b=>{
+    if(b.userData.active){
+      b.userData.t+=dt;
+      b.position.x+=0.04;
+      b.material.opacity=Math.max(0,0.6-b.userData.t*0.4);
+      b.scale.y=1+b.userData.t*2;
+      if(b.userData.t>1.5){b.userData.active=false;b.material.opacity=0;}
+    }
+  });
+}
+
+/* ─── CLOCK ───────────────────────────────────────────────── */
+const clock = new THREE.Clock();
+let paused=false;
+document.addEventListener('visibilitychange',()=>{ paused=document.hidden; });
+
+/* ─── RENDER LOOP ─────────────────────────────────────────── */
+function animate(){
+  requestAnimationFrame(animate);
+  if(paused) return;
+  const dt=Math.min(clock.getDelta(),0.05);
+  const t=clock.getElapsedTime();
+
+  /* Cubes rotate & float */
+  cubes.forEach(c=>{
+    const d=c.userData;
+    c.rotateOnAxis(d.axis,d.speed);
+    c.position.y=d.baseY+Math.sin(t*d.floatSpeed+d.floatOffset)*d.floatAmp;
+  });
+
+  /* Panels float & gently tilt */
+  panels.forEach(p=>{
+    const d=p.userData;
+    p.position.y=d.baseY+Math.sin(t*d.floatSpeed+d.floatOffset)*d.floatAmp;
+    p.rotation.y+=d.rotSpeed;
+  });
+
+  /* Neural nodes pulse */
+  nodes.forEach(n=>{
+    const pulse=0.3+Math.sin(t*1.4+n.userData.phase)*0.25;
+    n.material.emissiveIntensity=pulse;
+    n.scale.setScalar(0.9+pulse*0.2);
+  });
+
+  /* Connection opacity flicker */
+  connections.forEach(c=>{
+    c.material.opacity=0.08+Math.abs(Math.sin(t*0.6+c.userData.phase))*0.2;
+  });
+
+  /* DB cube slow spin + glow */
+  dbGroup.rotation.y+=0.004;
+  dbGroup.rotation.x+=0.001;
+  const dbPulse=0.5+Math.sin(t*0.8)*0.3;
+  purpleLight.intensity=2+dbPulse;
+
+  /* Particles drift */
+  const pos=pGeo.attributes.position.array;
+  for(let i=0;i<pCount;i++){
+    pos[i*3]  +=pVel[i].x;
+    pos[i*3+1]+=pVel[i].y;
+    pos[i*3+2]+=pVel[i].z;
+    if(pos[i*3]>15)  pos[i*3]=-15;
+    if(pos[i*3]<-15) pos[i*3]=15;
+    if(pos[i*3+1]>8) pos[i*3+1]=-8;
+    if(pos[i*3+1]<-8)pos[i*3+1]=8;
+  }
+  pGeo.attributes.position.needsUpdate=true;
+
+  /* Lights breathe */
+  blueLight.intensity=2.5+Math.sin(t*0.5)*0.5;
+
+  /* Vector counter */
+  if(vecCurrent<vecTarget){
+    vecCurrent=Math.min(vecTarget,vecCurrent+Math.ceil((vecTarget-vecCurrent)*0.04)+1000);
+    vecEl.textContent=vecCurrent.toLocaleString();
+  }
+
+  driftCamera();
+  pulseBeams(dt);
+  doTyping(dt);
+  renderer.render(scene,camera);
+}
+animate();
+
+/* ─── RESIZE ──────────────────────────────────────────────── */
+window.addEventListener('resize',()=>{
+  const w=window.innerWidth,h=window.innerHeight;
+  camera.aspect=w/h;
+  camera.updateProjectionMatrix();
+  renderer.setSize(w,h);
+});
+
+/* ─── PARALLAX ON MOUSE ──────────────────────────────────── */
+document.addEventListener('mousemove',e=>{
+  const mx=(e.clientX/window.innerWidth-0.5)*0.8;
+  const my=(e.clientY/window.innerHeight-0.5)*0.5;
+  camera.position.x+=(mx-camera.position.x)*0.02;
+  camera.position.y+=(2-my-camera.position.y)*0.02;
+});
+})();
+</script>
+</body>
+</html>

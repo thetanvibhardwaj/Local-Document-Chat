@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cognify Docs 3D Space</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            background: transparent; 
+            overflow: hidden; 
+            font-family: 'Inter', sans-serif;
+        }
+        #canvas3d { 
+            width: 100vw; 
+            height: 230px; 
+            display: block; 
+            border-radius: 20px; 
+        }
+        .canvas-overlay {
+            position: absolute;
+            top: 15px;
+            left: 25px;
+            pointer-events: none;
+            z-index: 10;
+        }
+        .canvas-tag {
+            background: rgba(212, 175, 55, 0.15);
+            border: 1px solid rgba(212, 175, 55, 0.4);
+            color: #FFD700;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.2);
+            backdrop-filter: blur(8px);
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+    <div class="canvas-overlay">
+        <span class="canvas-tag">✨ Interactive 3D Vector Engine</span>
+    </div>
+    <canvas id="canvas3d"></canvas>
+    <script>
+        const canvas = document.getElementById('canvas3d');
+        const scene = new THREE.Scene();
+        
+        // Deep Coffee Fog for Depth Effect
+        scene.fog = new THREE.FogExp2(0x1a0e0a, 0.035);
+
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / 230, 0.1, 1000);
+        camera.position.z = 11;
+        camera.position.y = 0.5;
+
+        const renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
+        renderer.setSize(window.innerWidth, 230);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+
+        // Dynamic Gold & Warm Coffee Lighting
+        const ambientLight = new THREE.AmbientLight(0x2a1a14, 1.2);
+        scene.add(ambientLight);
+
+        const goldLight = new THREE.PointLight(0xFFD700, 3.5, 60);
+        goldLight.position.set(6, 6, 8);
+        scene.add(goldLight);
+
+        const coffeeLight = new THREE.PointLight(0xD4AF37, 2.5, 50);
+        coffeeLight.position.set(-6, -4, 6);
+        scene.add(coffeeLight);
+
+        const centerGlow = new THREE.PointLight(0xFFE599, 1.5, 30);
+        centerGlow.position.set(0, 0, 2);
+        scene.add(centerGlow);
+
+        // Group holding all 3D floating meshes
+        const mainGroup = new THREE.Group();
+
+        // 1. Floating Metallic Geometries (Documents & Vector Nodes)
+        const geometries = [
+            new THREE.BoxGeometry(1.1, 1.4, 0.12), // 3D Document Sheet
+            new THREE.IcosahedronGeometry(0.7, 0),   // Vector Data Node
+            new THREE.OctahedronGeometry(0.65, 0),  // AI Query Core
+            new THREE.TorusGeometry(0.7, 0.12, 16, 32), // FAISS Embedding Ring
+            new THREE.TetrahedronGeometry(0.6, 0)
+        ];
+
+        const materials = [
+            new THREE.MeshStandardMaterial({ 
+                color: 0xD4AF37, roughness: 0.15, metalness: 0.9, 
+                emissive: 0x3d2b07, emissiveIntensity: 0.2 
+            }),
+            new THREE.MeshStandardMaterial({ 
+                color: 0xFFD700, roughness: 0.1, metalness: 0.95,
+                emissive: 0x544005, emissiveIntensity: 0.3
+            }),
+            new THREE.MeshStandardMaterial({ 
+                color: 0x2A1A14, roughness: 0.3, metalness: 0.7 
+            }),
+            new THREE.MeshStandardMaterial({ 
+                color: 0xE6C687, roughness: 0.2, metalness: 0.85 
+            }),
+            new THREE.MeshStandardMaterial({ 
+                color: 0x8C6721, roughness: 0.25, metalness: 0.8 
+            })
+        ];
+
+        const nodes = [];
+        const nodeCount = 18;
+
+        for (let i = 0; i < nodeCount; i++) {
+            const geo = geometries[i % geometries.length];
+            const mat = materials[i % materials.length];
+            const mesh = new THREE.Mesh(geo, mat);
+
+            mesh.position.x = (Math.random() - 0.5) * 18;
+            mesh.position.y = (Math.random() - 0.5) * 4.5;
+            mesh.position.z = (Math.random() - 0.5) * 7;
+
+            mesh.rotation.x = Math.random() * Math.PI * 2;
+            mesh.rotation.y = Math.random() * Math.PI * 2;
+
+            mesh.userData = {
+                rotSpeedX: (Math.random() - 0.5) * 0.015,
+                rotSpeedY: (Math.random() - 0.5) * 0.015,
+                floatSpeed: 0.008 + Math.random() * 0.012,
+                floatOffset: Math.random() * Math.PI * 2,
+                posY: mesh.position.y
+            };
+
+            mainGroup.add(mesh);
+            nodes.push(mesh);
+        }
+
+        // 2. Glowing Golden Particles Field (250 particles)
+        const particleCount = 250;
+        const particleGeo = new THREE.BufferGeometry();
+        const particlePositions = new Float32Array(particleCount * 3);
+        const particleScales = new Float32Array(particleCount);
+
+        for (let i = 0; i < particleCount; i++) {
+            particlePositions[i * 3] = (Math.random() - 0.5) * 25;
+            particlePositions[i * 3 + 1] = (Math.random() - 0.5) * 8;
+            particlePositions[i * 3 + 2] = (Math.random() - 0.5) * 12;
+            particleScales[i] = Math.random() * 0.08 + 0.02;
+        }
+
+        particleGeo.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
+
+        const particleMat = new THREE.PointsMaterial({
+            color: 0xFFD700,
+            size: 0.12,
+            transparent: true,
+            opacity: 0.75,
+            blending: THREE.AdditiveBlending
+        });
+
+        const particleSystem = new THREE.Points(particleGeo, particleMat);
+        mainGroup.add(particleSystem);
+
+        scene.add(mainGroup);
+
+        // Interactive Mouse Tracking with Smooth Inertia
+        let mouseX = 0, mouseY = 0;
+        let targetX = 0, targetY = 0;
+
+        document.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            if (e.clientY >= rect.top && e.clientY <= rect.bottom) {
+                mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
+                mouseY = ((e.clientY - rect.top) / 230 - 0.5) * 2;
+            }
+        });
+
+        // Animation Loop
+        const clock = new THREE.Clock();
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const elapsedTime = clock.getElapsedTime();
+
+            // Smooth camera dampening based on mouse
+            targetX += (mouseX - targetX) * 0.05;
+            targetY += (mouseY - targetY) * 0.05;
+
+            mainGroup.rotation.y = targetX * 0.25 + elapsedTime * 0.05;
+            mainGroup.rotation.x = -targetY * 0.15;
+
+            // Animate 3D Nodes
+            nodes.forEach(node => {
+                node.rotation.x += node.userData.rotSpeedX;
+                node.rotation.y += node.userData.rotSpeedY;
+                node.position.y = node.userData.posY + Math.sin(elapsedTime * 1.5 + node.userData.floatOffset) * 0.25;
+            });
+
+            // Animate Particles
+            const positions = particleGeo.attributes.position.array;
+            for (let i = 0; i < particleCount; i++) {
+                positions[i * 3 + 1] += Math.sin(elapsedTime + i) * 0.002;
+            }
+            particleGeo.attributes.position.needsUpdate = true;
+
+            // Light Pulsing
+            goldLight.intensity = 3.0 + Math.sin(elapsedTime * 2) * 0.8;
+            coffeeLight.intensity = 2.0 + Math.cos(elapsedTime * 1.5) * 0.6;
+
+            renderer.render(scene, camera);
+        }
+
+        animate();
+
+        // Responsive Resize Handler
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / 230;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, 230);
+        });
+    </script>
+</body>
+</html>
