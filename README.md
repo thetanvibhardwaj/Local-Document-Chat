@@ -45,3 +45,29 @@ source venv/bin/activate  # On Windows use: venv\Scripts\activate
 
 # Install dependencies
 pip install -r requirements.txt
+```
+
+⚡ Running the Platform
+
+To start both the Backend (FastAPI) and Frontend (Streamlit) services concurrently, run:
+
+```bash
+run_project.bat
+```
+Alternatively, launch them in separate terminal tabs:
+
+Start Backend:
+
+```bash
+python backend/main.py
+```
+Start Frontend:
+
+```bash
+streamlit run frontend/app.py
+Open your browser and navigate to http://localhost:8501 to use the application.
+```
+
+
+
+
