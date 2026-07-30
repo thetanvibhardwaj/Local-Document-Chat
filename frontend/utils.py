@@ -1,8 +1,9 @@
+import os
 import httpx
 import streamlit as st
 from typing import Dict, List, Any, Optional, Tuple
 
-API_BASE_URL = "http://127.0.0.1:8000"
+API_BASE_URL = os.environ.get("BACKEND_URL", "http://127.0.0.1:8000")
 
 def get_headers() -> Dict[str, str]:
     """Helper to attach bearer authorization token to request headers."""

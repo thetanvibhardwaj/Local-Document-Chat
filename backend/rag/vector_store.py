@@ -53,11 +53,16 @@ class VectorStoreManager:
             except Exception:
                 pass
 
+            # Force entire HuggingFace stack to work offline (model is already cached locally)
+            # This prevents httpx "client has been closed" errors under Uvicorn's StatReload
+            os.environ["HF_HUB_OFFLINE"] = "1"
+            os.environ["TRANSFORMERS_OFFLINE"] = "1"
+
             logger.info(f"Loading embedding model: {settings.embedding_model_name}")
             try:
                 cls._embeddings = HuggingFaceEmbeddings(
                     model_name=settings.embedding_model_name,
-                    model_kwargs={"device": "cpu"}
+                    model_kwargs={"device": "cpu", "local_files_only": True}
                 )
                 logger.info("Embedding model loaded successfully.")
             except Exception as e:

@@ -1,0 +1,46 @@
+services:
+  # Backend API
+  - type: web
+    name: cognify-docs-backend
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn backend.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      - key: HOST
+        value: 0.0.0.0
+      - key: DATABASE_URL
+        value: sqlite:///./backend/database/cognify_docs.db
+      - key: UPLOAD_DIR
+        value: ./uploads
+      - key: VECTOR_STORE_DIR
+        value: ./vector_store
+      - key: LOG_FILE_PATH
+        value: ./logs/app.log
+      - key: EMBEDDING_MODEL_NAME
+        value: all-MiniLM-L6-v2
+      - key: MAX_UPLOAD_SIZE_MB
+        value: 10
+      - key: LOG_LEVEL
+        value: INFO
+      - key: HF_HUB_OFFLINE
+        value: 0
+      - key: PYTHON_VERSION
+        value: 3.12.0
+
+  # Frontend Streamlit
+  - type: web
+    name: cognify-docs-frontend
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: streamlit run frontend/app.py --server.port $PORT --server.address 0.0.0.0 --server.headless true
+    envVars:
+      - key: BACKEND_URL
+        value: https://cognify-docs-backend.onrender.com
+      - key: PYTHON_VERSION
+        value: 3.12.0

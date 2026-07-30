@@ -264,41 +264,68 @@ def render_footer():
 # AUTH PAGE
 # ============================================================
 def render_auth_page():
-    # ── Inject full-page Three.js animated background ─────────────────────
-    bg_path = os.path.join(os.path.dirname(__file__), "login_bg.html")
-    if os.path.exists(bg_path):
-        with open(bg_path, "r", encoding="utf-8") as f:
-            bg_html = f.read()
-        # Embed as fixed-position full-viewport iframe behind Streamlit UI
-        import urllib.parse
-        encoded = urllib.parse.quote(bg_html)
-        st.markdown(
-            f'<iframe src="data:text/html;charset=utf-8,{encoded}" '
-            f'style="position:fixed;top:0;left:0;width:100vw;height:100vh;'
-            f'border:none;z-index:0;pointer-events:none;" '
-            f'sandbox="allow-scripts"></iframe>',
-            unsafe_allow_html=True,
-        )
-
-    # ── Glassmorphism overlay for the login card ────────────────────────────
+    # ── Custom Animated CSS Background matching Dashboard Theme ─────────────
     st.markdown("""
     <style>
-    /* Full-page dark background so Three.js shows through */
+    /* Full-page dark background */
     .stApp { background: transparent !important; }
     [data-testid="stAppViewContainer"] > .main { background: transparent !important; }
-    [data-testid="stAppViewContainer"] { background: #0D1117 !important; }
+    [data-testid="stAppViewContainer"] { 
+        background: #080b0a !important; 
+        overflow: hidden;
+    }
 
-    /* Glassmorphism login card */
+    /* CSS Animated Glowing Orbs/Blobs */
+    .bg-blobs {
+        position: fixed;
+        top: 0; left: 0; width: 100vw; height: 100vh;
+        z-index: 0; pointer-events: none;
+        overflow: hidden;
+    }
+    .blob {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(80px);
+        opacity: 0.4;
+        animation: float 20s infinite ease-in-out;
+    }
+    .blob-1 {
+        background: rgba(139, 168, 136, 0.15); /* Theme olive green */
+        width: 600px; height: 600px;
+        top: -200px; left: -100px;
+        animation-delay: 0s;
+    }
+    .blob-2 {
+        background: rgba(43, 61, 56, 0.4); /* Darker theme green */
+        width: 500px; height: 500px;
+        bottom: -150px; right: -100px;
+        animation-duration: 25s;
+        animation-delay: -5s;
+    }
+    .blob-3 {
+        background: rgba(139, 168, 136, 0.1); 
+        width: 400px; height: 400px;
+        top: 40%; left: 60%;
+        animation-duration: 18s;
+        animation-delay: -2s;
+    }
+
+    @keyframes float {
+        0%, 100% { transform: translate(0, 0) scale(1); }
+        33% { transform: translate(30px, -50px) scale(1.1); }
+        66% { transform: translate(-20px, 20px) scale(0.9); }
+    }
+
+    /* Glassmorphism login card matching dashboard */
     div[class*="cog-card"].fade-in,
     .cog-card.fade-in {
-        background: rgba(13,17,23,0.72) !important;
-        border: 1px solid rgba(6,182,212,0.18) !important;
-        backdrop-filter: blur(24px) saturate(160%) !important;
-        -webkit-backdrop-filter: blur(24px) saturate(160%) !important;
-        box-shadow:
-            0 0 0 1px rgba(6,182,212,0.08),
-            0 24px 60px rgba(0,0,0,0.55),
-            0 0 40px rgba(124,58,237,0.08) !important;
+        position: relative; z-index: 2;
+        background: rgba(11, 15, 13, 0.7) !important;
+        border: 1px solid rgba(139, 168, 136, 0.2) !important;
+        backdrop-filter: blur(16px) saturate(140%) !important;
+        -webkit-backdrop-filter: blur(16px) saturate(140%) !important;
+        box-shadow: 0 12px 40px rgba(0,0,0,0.4) !important;
+        border-radius: 12px !important;
     }
     /* Tab styling for login/register */
     .stTabs [data-baseweb="tab-list"] {
@@ -306,22 +333,30 @@ def render_auth_page():
         border-radius: 10px !important;
         border: 1px solid rgba(255,255,255,0.06) !important;
     }
-    /* Brand title glow on auth page */
-    .brand-title { text-shadow: 0 0 40px rgba(6,182,212,0.3); }
+    .brand-title { 
+        text-shadow: 0 0 20px rgba(139,168,136,0.3); 
+        color: var(--accent) !important;
+    }
     </style>
+    
+    <div class="bg-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
     """, unsafe_allow_html=True)
 
     st.markdown(
         """
-        <div style="text-align:right;padding:56px 12% 28px 0;">
-            <p class="brand-title" style="font-size:40px;justify-content:flex-end;">🚀 Cognify Docs</p>
-            <p class="brand-subtitle" style="font-size:14px;">AI-Powered Local Document Intelligence Platform</p>
+        <div style="text-align:center;padding:56px 0 28px 0;position:relative;z-index:2;">
+            <p class="brand-title" style="font-size:44px;justify-content:center;">🚀 Cognify Docs</p>
+            <p class="brand-subtitle" style="font-size:15px;">AI-Powered Local Document Intelligence Platform</p>
         </div>
         """,
         unsafe_allow_html=True,
     )
 
-    col1, col2, col3 = st.columns([1.1, 1.3, 0.4])
+    col1, col2, col3 = st.columns([1, 1.3, 1])
     with col2:
         tab_login, tab_register = st.tabs(["🔐 Login", "✨ Register"])
 
@@ -521,8 +556,8 @@ def render_doc_manager():
         st.markdown('<div class="cog-card">', unsafe_allow_html=True)
         st.markdown('<p class="cog-card-title">📤 Upload New Document</p>', unsafe_allow_html=True)
         uploaded_file = st.file_uploader(
-            "Drag & drop or browse — PDF, DOCX or TXT",
-            type=["pdf", "docx", "txt"],
+            "Drag & drop or browse — PDF, DOCX, TXT or CSV",
+            type=["pdf", "docx", "txt", "csv"],
             help="Max size 10MB. Content will be immediately processed.",
         )
         if uploaded_file is not None:

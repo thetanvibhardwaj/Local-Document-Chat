@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cognify Docs - Multi-Tenant Semantic Document Q&A System</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- Header Section -->
+    <header class="header">
+        <div class="container nav-container">
+            <div class="logo-area">
+                <img src="assets/logo.jpg" alt="Cognify Logo" class="nav-logo">
+                <span class="logo-text">COGNIFY <span class="accent">DOCS</span></span>
+            </div>
+            <nav class="navbar">
+                <a href="#features">Features</a>
+                <a href="#pipeline">RAG Workflow</a>
+                <a href="#architecture">Architecture</a>
+                <a href="#api">API Sandbox</a>
+            </nav>
+            <div class="nav-actions">
+                <a href="http://localhost:8501" target="_blank" class="btn btn-secondary">Launch Client</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container grid hero-grid">
+            <div class="hero-content fade-in">
+                <div class="badge">Major Project Thesis Showcase</div>
+                <h1 class="hero-title">Cognify Document Knowledge base <br><span class="accent-glow">Local & Air-Gapped RAG</span></h1>
+                <p class="hero-desc">
+                    An enterprise-grade, multi-tenant document intelligence system. Parse, chunk, and index PDFs, DOCX, and Text files locally using vector embeddings, FAISS indices, and Gemini-based Q&A context boundaries.
+                </p>
+                <div class="hero-buttons">
+                    <a href="#features" class="btn btn-primary">Explore Features</a>
+                    <a href="http://localhost:8501" target="_blank" class="btn btn-secondary">Open QA Arena</a>
+                </div>
+            </div>
+            <div class="hero-visual-wrapper fade-in-right">
+                <div class="visual-card-3d" id="hero-tilt-card">
+                    <img src="assets/dashboard.jpg" alt="Cognify Dashboard Mockup" class="hero-dashboard">
+                    <div class="glow-sphere"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Core Features Section -->
+    <section id="features" class="section-container">
+        <div class="container text-center section-header">
+            <h2 class="section-title">Core Technology Pillars</h2>
+            <p class="section-subtitle">Cognify Docs leverages state-of-the-art architectures to achieve complete privacy, zero cross-tenant contamination, and sub-second retrieval speeds.</p>
+        </div>
+        <div class="container grid features-grid">
+            
+            <!-- Card 1 -->
+            <div class="card card-3d fade-in-up" data-tilt>
+                <div class="card-icon">⚡</div>
+                <h3>FastAPI REST Gateway</h3>
+                <p>Designed with JWT-based session tokenization and secure password hashing. Fast, lightweight, and structured microservices endpoints.</p>
+                <div class="card-glow"></div>
+            </div>
+
+            <!-- Card 2 -->
+            <div class="card card-3d fade-in-up" data-tilt>
+                <div class="card-icon">🧬</div>
+                <h3>Isolated Vector Stores</h3>
+                <p>Ensures 100% data multi-tenancy. Document chunks map to unique folders `/vector_store/user_{user_id}`. No cross-account leakage.</p>
+                <div class="card-glow"></div>
+            </div>
+
+            <!-- Card 3 -->
+            <div class="card card-3d fade-in-up" data-tilt>
+                <div class="card-icon">🎯</div>
+                <h3>Context-Locked Prompts</h3>
+                <p>Strict LLM boundary formatting. Google Gemini API synthesizes answers using only the injected FAISS citations, completely avoiding hallucinations.</p>
+                <div class="card-glow"></div>
+            </div>
+
+            <!-- Card 4 -->
+            <div class="card card-3d fade-in-up" data-tilt>
+                <div class="card-icon">🛡️</div>
+                <h3>Stream Safekeeping</h3>
+                <p>Patched stream flushes preventing [Errno 22] crashes in headless or redirected console environments during AI model downloads.</p>
+                <div class="card-glow"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pipeline Workflow Section -->
+    <section id="pipeline" class="section-container bg-alt">
+        <div class="container text-center section-header">
+            <h2 class="section-title">RAG Execution Pipeline</h2>
+            <p class="section-subtitle">Toggles between Ingestion and Query pathways to trace context and query embeddings flows.</p>
+            <div class="tab-buttons">
+                <button class="tab-btn active" onclick="switchPipeline('ingestion')">Ingestion Path</button>
+                <button class="tab-btn" onclick="switchPipeline('query')">Query Path</button>
+            </div>
+        </div>
+
+        <div class="container">
+            <!-- Ingestion Pipeline Flow -->
+            <div id="pipeline-ingestion" class="pipeline-flow active-flow">
+                <div class="flow-step slide-in-left">
+                    <div class="step-num">1</div>
+                    <div class="step-content">
+                        <h4>Document Upload</h4>
+                        <p>User uploads a PDF, DOCX, or TXT file. Backend validates size and format restrictions.</p>
+                    </div>
+                </div>
+                <div class="flow-step slide-in-left">
+                    <div class="step-num">2</div>
+                    <div class="step-content">
+                        <h4>Text Extraction & Chunking</h4>
+                        <p>Raw text is extracted and parsed. LangChain's splitter segments text into 500-character overlaps.</p>
+                    </div>
+                </div>
+                <div class="flow-step slide-in-left">
+                    <div class="step-num">3</div>
+                    <div class="step-content">
+                        <h4>Embedding Generation</h4>
+                        <p>Local <code>all-MiniLM-L6-v2</code> transformer model outputs 384-dimensional dense vectors.</p>
+                    </div>
+                </div>
+                <div class="flow-step slide-in-left">
+                    <div class="step-num">4</div>
+                    <div class="step-content">
+                        <h4>FAISS Serialization</h4>
+                        <p>Vector arrays and metadata dictionaries (tagging document IDs) are saved in user directories.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Query Pipeline Flow -->
+            <div id="pipeline-query" class="pipeline-flow">
+                <div class="flow-step">
+                    <div class="step-num">1</div>
+                    <div class="step-content">
+                        <h4>Question Embedding</h4>
+                        <p>User queries the Chat Arena. Question is mapped to a vector in the same embedding space.</p>
+                    </div>
+                </div>
+                <div class="flow-step">
+                    <div class="step-num">2</div>
+                    <div class="step-content">
+                        <h4>Metadata Pre-filtering</h4>
+                        <p>A Lambda metadata function pre-filters the search index based on the chosen document ID.</p>
+                    </div>
+                </div>
+                <div class="flow-step">
+                    <div class="step-num">3</div>
+                    <div class="step-content">
+                        <h4>L2 FAISS Similarity Search</h4>
+                        <p>Retriever queries vector store to fetch the top 4 closest semantic chunks.</p>
+                    </div>
+                </div>
+                <div class="flow-step">
+                    <div class="step-num">4</div>
+                    <div class="step-content">
+                        <h4>Context Injected Prompting</h4>
+                        <p>FastAPI formats a strict prompt containing context chunks and sends it to the Gemini API.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Architecture & UML section -->
+    <section id="architecture" class="section-container">
+        <div class="container text-center section-header">
+            <h2 class="section-title">System Architecture & Schemas</h2>
+            <p class="section-subtitle">Explore database relations, Entity schemas, and code directory boundaries.</p>
+            <div class="tab-buttons">
+                <button class="tab-btn active" onclick="switchSchema('database')">Database Tables</button>
+                <button class="tab-btn" onclick="switchSchema('directory')">Directory Tree</button>
+            </div>
+        </div>
+
+        <div class="container">
+            <!-- Database Tab -->
+            <div id="schema-database" class="schema-viewer active-schema fade-in">
+                <div class="grid schema-grid">
+                    <div class="schema-card">
+                        <div class="schema-card-header">USERS TABLE</div>
+                        <ul class="schema-list">
+                            <li><strong>id:</strong> INTEGER (Primary Key)</li>
+                            <li><strong>username:</strong> VARCHAR(50) (Unique)</li>
+                            <li><strong>hashed_password:</strong> VARCHAR(255)</li>
+                            <li><strong>created_at:</strong> DATETIME</li>
+                        </ul>
+                    </div>
+                    <div class="schema-card">
+                        <div class="schema-card-header">DOCUMENTS TABLE</div>
+                        <ul class="schema-list">
+                            <li><strong>id:</strong> INTEGER (Primary Key)</li>
+                            <li><strong>filename:</strong> VARCHAR(100)</li>
+                            <li><strong>filepath:</strong> VARCHAR(255)</li>
+                            <li><strong>file_type:</strong> VARCHAR(10)</li>
+                            <li><strong>size_bytes:</strong> INTEGER</li>
+                            <li><strong>chunk_count:</strong> INTEGER</li>
+                            <li><strong>embedding_status:</strong> VARCHAR(20)</li>
+                            <li><strong>upload_date:</strong> DATETIME</li>
+                            <li><strong>user_id:</strong> INTEGER (Foreign Key)</li>
+                        </ul>
+                    </div>
+                    <div class="schema-card">
+                        <div class="schema-card-header">CHAT HISTORY TABLE</div>
+                        <ul class="schema-list">
+                            <li><strong>id:</strong> INTEGER (Primary Key)</li>
+                            <li><strong>question:</strong> TEXT</li>
+                            <li><strong>answer:</strong> TEXT</li>
+                            <li><strong>timestamp:</strong> DATETIME</li>
+                            <li><strong>user_id:</strong> INTEGER (Foreign Key)</li>
+                            <li><strong>document_id:</strong> INTEGER (Foreign Key)</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Directory Tab -->
+            <div id="schema-directory" class="schema-viewer fade-in">
+                <div class="directory-container">
+<pre>
+COGNIFY_DOCS/
+├── backend/
+│   ├── database/
+│   │   ├── connection.py
+│   │   └── models.py
+│   ├── rag/
+│   │   ├── loader.py
+│   │   └── vector_store.py
+│   ├── routes/
+│   │   ├── auth.py
+│   │   ├── chat.py
+│   │   └── docs.py
+│   ├── services/
+│   │   ├── auth_service.py
+│   │   ├── doc_service.py
+│   │   └── rag_service.py
+│   ├── utils/
+│   │   ├── config.py
+│   │   └── logger.py
+│   └── main.py
+├── frontend/
+│   ├── app.py
+│   ├── styles.css
+│   └── utils.py
+├── uploads/
+├── vector_store/
+└── .env
+</pre>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- API Documentation Section -->
+    <section id="api" class="section-container bg-alt">
+        <div class="container text-center section-header">
+            <h2 class="section-title">FastAPI OpenAPI Interactive Sandbox</h2>
+            <p class="section-subtitle">View HTTP endpoint specifications and JSON payload request/response examples.</p>
+            <div class="tab-buttons">
+                <button class="tab-btn active" onclick="switchApi('chat')">POST /api/chat</button>
+                <button class="tab-btn" onclick="switchApi('upload')">POST /api/documents/upload</button>
+            </div>
+        </div>
+
+        <div class="container">
+            <!-- API Chat Tab -->
+            <div id="api-chat" class="api-viewer active-api fade-in">
+                <div class="grid api-grid">
+                    <div>
+                        <h4>Request Payload</h4>
+                        <div class="code-box">
+<pre>{
+  "question": "What is the role of Member 2?",
+  "document_id": 7
+}</pre>
+                        </div>
+                    </div>
+                    <div>
+                        <h4>Response JSON (HTTP 200)</h4>
+                        <div class="code-box">
+<pre>{
+  "answer": "Member 2 is the Lead Backend Developer.",
+  "citations": [
+    {
+      "document_name": "Project_Plan.txt",
+      "page_number": 1,
+      "chunk_text": "Role Title: Backend Developer..."
+    }
+  ]
+}</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- API Upload Tab -->
+            <div id="api-upload" class="api-viewer fade-in">
+                <div class="grid api-grid">
+                    <div>
+                        <h4>Request Form-Data</h4>
+                        <div class="code-box">
+<pre>Headers: 
+Authorization: Bearer <JWT_TOKEN>
+
+Form Data:
+file: Binary file content (PDF/DOCX/TXT)</pre>
+                        </div>
+                    </div>
+                    <div>
+                        <h4>Response JSON (HTTP 201)</h4>
+                        <div class="code-box">
+<pre>{
+  "id": 7,
+  "filename": "Project_Plan.txt",
+  "file_type": ".txt",
+  "chunk_count": 9,
+  "embedding_status": "PROCESSED"
+}</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer Section -->
+    <footer class="footer">
+        <div class="container footer-content text-center">
+            <p>Cognify Docs - Major B.Tech Project © 2026. Made with ❤️ and Olive Green gradients.</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,7 +1,7 @@
 import os
 from typing import List
 from langchain_core.documents import Document
-from langchain_community.document_loaders import PyPDFLoader, Docx2txtLoader, TextLoader
+from langchain_community.document_loaders import PyPDFLoader, Docx2txtLoader, TextLoader, CSVLoader
 from backend.utils.logger import logger
 
 class DocumentLoader:
@@ -9,7 +9,7 @@ class DocumentLoader:
     def load(file_path: str) -> List[Document]:
         """
         Loads document contents based on the file extension.
-        Supports PDF, DOCX, and TXT formats.
+        Supports PDF, DOCX, TXT, and CSV formats.
         """
         if not os.path.exists(file_path):
             logger.error(f"Loader failed: File does not exist at '{file_path}'")
@@ -34,6 +34,11 @@ class DocumentLoader:
                 loader = TextLoader(file_path, encoding="utf-8")
                 docs = loader.load()
                 logger.info(f"Successfully loaded TXT document '{file_path}'")
+                return docs
+            elif ext == ".csv":
+                loader = CSVLoader(file_path, encoding="utf-8")
+                docs = loader.load()
+                logger.info(f"Successfully loaded {len(docs)} rows from CSV '{file_path}'")
                 return docs
             else:
                 logger.warning(f"Rejected loader call for unsupported file type: '{ext}'")

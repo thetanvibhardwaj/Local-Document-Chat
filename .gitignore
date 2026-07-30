@@ -1,0 +1,28 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environments
+.venv/
+venv/
+ENV/
+env/
+
+# Project configuration and local state
+.env
+.env.local
+
+# Databases
+backend/database/*.db
+backend/database/*.db-journal
+
+# Local directories
+uploads/
+vector_store/
+logs/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/

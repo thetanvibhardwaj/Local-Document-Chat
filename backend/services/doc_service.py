@@ -13,7 +13,7 @@ from langchain_core.documents import Document as LangChainDocument
 
 class DocumentService:
     # Whitelist of approved extensions
-    ALLOWED_EXTENSIONS = {".pdf", ".docx", ".txt"}
+    ALLOWED_EXTENSIONS = {".pdf", ".docx", ".txt", ".csv"}
 
     @classmethod
     def validate_file(cls, file: UploadFile) -> str:
@@ -26,7 +26,7 @@ class DocumentService:
             logger.warning(f"File upload blocked: Unsupported extension '{ext}' in '{filename}'")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Unsupported file format '{ext}'. Allowed formats: PDF, DOCX, TXT."
+                detail=f"Unsupported file format '{ext}'. Allowed formats: PDF, DOCX, TXT, CSV."
             )
         return ext
 

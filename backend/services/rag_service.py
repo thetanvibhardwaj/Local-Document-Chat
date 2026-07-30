@@ -133,9 +133,13 @@ class RAGService:
         )
 
         # 6. Try each model in priority order
+        api_key = settings.gemini_api_key.strip().strip("'").strip('"')
         client = genai.Client(
-            api_key=settings.gemini_api_key,
-            http_options={"timeout": 60000}
+            api_key=api_key,
+            http_options={
+                "timeout": 60000,
+                "headers": {"x-goog-api-key": api_key}
+            }
         )
         answer = None
 
