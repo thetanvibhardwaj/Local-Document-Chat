@@ -2,7 +2,7 @@ import os
 import shutil
 from typing import List, Optional
 from langchain_community.vectorstores import FAISS
-from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_core.documents import Document
 from backend.utils.config import settings
 from backend.utils.logger import logger
@@ -12,61 +12,20 @@ class VectorStoreManager:
     _embeddings = None
 
     @classmethod
-    def get_embeddings(cls) -> HuggingFaceEmbeddings:
+    def get_embeddings(cls) -> GoogleGenerativeAIEmbeddings:
         """
         Lazy load embedding model so it only loads when needed.
         """
         if cls._embeddings is None:
-            # Safeguard stream flush methods to prevent tqdm/transformers from crashing with [Errno 22]
+            logger.info("Initializing Google Generative AI Embeddings...")
             try:
-                import sys
-                for stream in (sys.stdout, sys.stderr):
-                    if hasattr(stream, "flush"):
-                        original_flush = stream.flush
-                        def make_safe_flush(orig_flush):
-                            def safe_flush():
-                                try:
-                                    orig_flush()
-                                except OSError as e:
-                                    if e.errno == 22:
-                                        pass  # Ignore Errno 22 (Invalid argument)
-                                    else:
-                                        raise
-                            return safe_flush
-                        stream.flush = make_safe_flush(original_flush)
-            except Exception:
-                pass
-
-            # Force disable tqdm progress bars
-            try:
-                import tqdm
-                if not hasattr(tqdm, "_original_init"):
-                    tqdm._original_init = tqdm.tqdm.__init__
-                tqdm.tqdm.__init__ = lambda self, *args, **kwargs: tqdm._original_init(self, *args, **{**kwargs, "disable": True})
-            except Exception:
-                pass
-
-            # Disable transformers progress bars
-            try:
-                from transformers.utils.logging import disable_progress_bar
-                disable_progress_bar()
-            except Exception:
-                pass
-
-            # Force entire HuggingFace stack to work offline (model is already cached locally)
-            # This prevents httpx "client has been closed" errors under Uvicorn's StatReload
-            os.environ["HF_HUB_OFFLINE"] = "1"
-            os.environ["TRANSFORMERS_OFFLINE"] = "1"
-
-            logger.info(f"Loading embedding model: {settings.embedding_model_name}")
-            try:
-                cls._embeddings = HuggingFaceEmbeddings(
-                    model_name=settings.embedding_model_name,
-                    model_kwargs={"device": "cpu", "local_files_only": True}
+                cls._embeddings = GoogleGenerativeAIEmbeddings(
+                    model="gemini-embedding-001",
+                    google_api_key=settings.gemini_api_key.strip().strip("'").strip('"')
                 )
-                logger.info("Embedding model loaded successfully.")
+                logger.info("Google Generative AI Embeddings initialized successfully.")
             except Exception as e:
-                logger.error(f"Failed to load embedding model: {e}", exc_info=True)
+                logger.error(f"Failed to initialize Google Generative AI Embeddings: {e}", exc_info=True)
                 raise
 
         return cls._embeddings
