@@ -41,11 +41,17 @@ def make_request(
             try:
                 data = response.json()
             except Exception:
-                data = response.text
+                # If we get a 502/503 from Render (e.g. server is waking up from sleep)
+                if response.status_code in (502, 503, 504):
+                    data = {"detail": "Backend server is waking up (or unreachable). Please wait 30-50 seconds and try again."}
+                else:
+                    data = {"detail": f"Server returned an unexpected response (Status {response.status_code})."}
                 
             return response.status_code, data
     except httpx.NetworkError:
-        return 503, {"detail": "Backend server is unreachable. Please verify Uvicorn is running."}
+        return 503, {"detail": "Backend server is unreachable. Please verify the URL and ensure the server is running."}
+    except httpx.TimeoutException:
+        return 504, {"detail": "Request to backend timed out. The server might be waking up from sleep, please try again."}
     except Exception as e:
         return 500, {"detail": f"An unexpected error occurred: {str(e)}"}
 
