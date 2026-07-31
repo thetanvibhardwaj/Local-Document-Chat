@@ -6,7 +6,6 @@ An enterprise-grade, local Retrieval-Augmented Generation (RAG) Document Intelli
 
 ## 🌟 Key Features
 
-- **Double-Layered Security**: Stateful JWT authentication coupled with local-first file processing.
 - **Intelligent RAG Pipeline**:
   - Auto-extracts chunks and creates vectors using `all-MiniLM-L6-v2`.
   - Local vector management via **FAISS** with document-level filtering.
