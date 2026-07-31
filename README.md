@@ -7,8 +7,6 @@ An enterprise-grade, local Retrieval-Augmented Generation (RAG) Document Intelli
 ## 🌟 Key Features
 
 - **Double-Layered Security**: Stateful JWT authentication coupled with local-first file processing.
-- **Enterprise Visual Experience**: Stunning dark-themed Glassmorphism styling with customized Three.js interactive 3D visualizations.
-- **Dynamic 3D Login Backdrop**: Built-in interactive particle system, knowledge graph, and simulated real-time data flow.
 - **Intelligent RAG Pipeline**:
   - Auto-extracts chunks and creates vectors using `all-MiniLM-L6-v2`.
   - Local vector management via **FAISS** with document-level filtering.
@@ -21,9 +19,9 @@ An enterprise-grade, local Retrieval-Augmented Generation (RAG) Document Intelli
 
 ## 🛠️ Tech Stack
 
-- **Frontend**: Streamlit, HTML5, Custom HSL Vanilla CSS, Three.js
+- **Frontend**: Streamlit, HTML ,CSS
 - **Backend Services**: FastAPI, Uvicorn, LangChain, FAISS
-- **Database**: SQLite (SQLAlchemy ORM)
+- **Database**: SQLite
 - **Embedding & LLM**: HuggingFace SentenceTransformers, Google Gemini API
 
 ---
