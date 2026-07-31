@@ -17,8 +17,7 @@ This project is built using a clean, modular architecture combining a **FastAPI*
 - **Local Embedding Vectorization**: Embeds chunks locally on CPU using `sentence-transformers/all-MiniLM-L6-v2`.
 - **Accurate QA with Google Gemini**: Prompt engineering templates instructing Gemini to answer only from context, resolving hallucinations by reverting to a strict fallback response: *"I couldn't find relevant information in the uploaded documents."*
 - **Source Citations**: Collapsible references listing the original document name, page number, and matching text chunk.
-- **Searchable Chat History**: Stores interaction logs in SQLite with text search keyword matching and document-level scope filters.
-- **Luxury UI Dashboard**: A Streamlit dashboard utilizing custom CSS card modules, upload progress indicators, sorting filters, and interactive chat areas.
+- **Searchable Chat History**: Stores interaction logs in SQLite with text search keyword matching and document-level scope    filters.
 
 ---
 
@@ -187,7 +186,7 @@ pytest -v
 
 ## 🛠️ Tech Stack Details
 
-- **Backend**: FastAPI, Uvicorn, SQLite, SQLAlchemy ORM
+- **Backend**: FastAPI, Uvicorn, SQLite
 - **AI Core**: LangChain, Local SentenceTransformers (`all-MiniLM-L6-v2`), Google Gemini API
 - **Vector DB**: Local FAISS CPU indices
 - **Frontend**: Streamlit, Custom HTML/CSS
@@ -197,3 +196,6 @@ pytest -v
 
 ## 📄 License
 This project is open-source and licensed under the MIT License.
+
+
+** DEPLOY LINK -: https://cognify-docs-frontend.onrender.com/
