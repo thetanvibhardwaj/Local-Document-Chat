@@ -8,7 +8,6 @@ This project is built using a clean, modular architecture combining a **FastAPI*
 
 ## 🌟 Key Features
 
-- **JWT-Based Stateful Authentication**: Simple user register, login, logout, and token revocation via session management.
 - **Tenant Data Isolation**: Documents and FAISS vector indices are stored in user-specific subdirectories (`vector_store/user_{user_id}`), preventing cross-user document leakage.
 - **Fast, Local Text Processing**:
   - Loaders for **PDF**, **DOCX**, and **TXT** files.
